@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/lockearlysubmit/db" VERSION="2025072300" COMMENT="Track processed assignments for early locking">
+    <TABLES>
+        <TABLE NAME="local_lockearlysubmit_log" COMMENT="Assignments already processed for locking">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="assignid" TYPE="int" LENGTH="10" NOTNULL="true"/>
+                <FIELD NAME="timeprocessed" TYPE="int" LENGTH="10" NOTNULL="true"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="assignid_fk" TYPE="foreign" FIELDS="assignid" REFTABLE="assign" REFFIELDS="id"/>
+            </KEYS>
+        </TABLE>
+    </TABLES>
+</XMLDB>
