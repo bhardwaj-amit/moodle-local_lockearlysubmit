@@ -16,7 +16,7 @@
 
 /**
  * Observers definition.
- * 
+ *
  * @package    local_lockearlysubmit
  * @author     Amit Bhardwaj (moodlebyamit@gmail.com)
  * @copyright  2025 Amit

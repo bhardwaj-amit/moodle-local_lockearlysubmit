@@ -35,13 +35,11 @@ use core_privacy\local\metadata\collection;
  * This plugin does not store any personal user data.
  */
 class provider implements \core_privacy\local\metadata\null_provider {
-
     /**
-     * Returns metadata about this plugin.
-     *
-     * @param collection $collection The metadata collection object.
-     * @return collection The updated collection.
-     */
+    * This plugin does not store any personal user data.
+    *
+    * @return string The explanation.
+    */
     public static function get_reason(): string {
         return get_string('privacy:metadata', 'local_lockearlysubmit');
     }

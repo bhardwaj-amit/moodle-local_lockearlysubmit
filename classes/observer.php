@@ -34,22 +34,20 @@ defined('MOODLE_INTERNAL') || die();
  */
 class observer
 {
-
     /**
      * Lock early submissions when assignment is viewed after the due date.
      *
      * @param \core\event\course_module_viewed $event
      */
-    public static function handle_view(\core\event\course_module_viewed $event)
-    {
+    public static function handle_view(\core\event\course_module_viewed $event) {
         global $DB;
 
-        // We only care about 'assign' modules
+        // We only care about 'assign' modules.
         if ($event->objecttable !== 'assign') {
             return;
         }
 
-        // Get course module and assignment instance
+        // Get course module and assignment instance.
         $cm = get_coursemodule_from_id('assign', $event->contextinstanceid);
         if (!$cm) {
             return;
@@ -59,18 +57,18 @@ class observer
         $assign = new \assign($context, null, null);
         $instance = $assign->get_instance();
 
-        // Skip if due date hasn't passed
+        // Skip if due date hasn't passed.
         if ($instance->duedate == 0 || time() <= $instance->duedate) {
             return;
         }
 
-        // Skip if already locked previously
+        // Skip if already locked previously.
         if ($DB->record_exists('local_lockearlysubmit_log', ['assignid' => $instance->id])) {
             return;
         }
 
-        // Lock early submissions
-        $submissions = $assign->get_all_submissions(null); // Get all users
+        // Lock early submissions.
+        $submissions = $assign->get_all_submissions(null); // Get all users.
         foreach ($submissions as $submission) {
             if (
                 $submission->status === ASSIGN_SUBMISSION_STATUS_SUBMITTED &&
@@ -82,7 +80,7 @@ class observer
             }
         }
 
-        // Mark this assignment as processed
+        // Mark this assignment as processed.
         $DB->insert_record('local_lockearlysubmit_log', [
             'assignid' => $instance->id,
             'timeprocessed' => time(),
@@ -94,8 +92,7 @@ class observer
      *
      * @param \mod_assign\event\extension_granted $event
      */
-    public static function handle_extension(\mod_assign\event\extension_granted $event)
-    {
+    public static function handle_extension(\mod_assign\event\extension_granted $event) {
         global $DB;
 
         $cm = get_coursemodule_from_id('assign', $event->contextinstanceid);
@@ -107,13 +104,13 @@ class observer
         $assign = new \assign($context, null, null);
         $userid = $event->relateduserid;
 
-        // Check user flags for new extension time
+        // Check user flags for new extension time.
         $flags = $DB->get_record('assign_user_flags', [
             'assignment' => $assign->get_instance()->id,
-            'userid' => $userid
+            'userid' => $userid,
         ]);
 
-        // If extension is in the future, unlock
+        // If extension is in the future, unlock.
         if ($flags && $flags->extensionduedate > time()) {
             $submission = $assign->get_user_submission($userid, false);
             if ($submission && !empty($flags->locked)) {
