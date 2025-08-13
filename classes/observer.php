@@ -27,13 +27,10 @@ namespace local_lockearlysubmit;
 
 use mod_assign\assign;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Event observers for local_lockearlysubmit plugin.
  */
-class observer
-{
+class observer {
     /**
      * Lock early submissions when assignment is viewed after the due date.
      *
@@ -76,6 +73,13 @@ class observer
             ) {
                 $flags = $assign->get_user_flags($submission->userid, true);
                 $flags->locked = 1;
+                $assign->update_user_flags($flags);
+            } else if (
+                $submission->status === ASSIGN_SUBMISSION_STATUS_NEW &&
+                $submission->timemodified <= $instance->duedate
+            ) {
+                $flags = $assign->get_user_flags($submission->userid, true);
+                $flags->locked = 0; // Ensure new submissions are not locked.
                 $assign->update_user_flags($flags);
             }
         }

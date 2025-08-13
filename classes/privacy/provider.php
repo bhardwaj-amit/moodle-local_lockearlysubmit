@@ -25,8 +25,6 @@
 
 namespace local_lockearlysubmit\privacy;
 
-defined('MOODLE_INTERNAL') || die();
-
 use core_privacy\local\metadata\collection;
 
 /**
@@ -36,10 +34,10 @@ use core_privacy\local\metadata\collection;
  */
 class provider implements \core_privacy\local\metadata\null_provider {
     /**
-    * This plugin does not store any personal user data.
-    *
-    * @return string The explanation.
-    */
+     * This plugin does not store any personal user data.
+     *
+     * @return string The explanation.
+     */
     public static function get_reason(): string {
         return get_string('privacy:metadata', 'local_lockearlysubmit');
     }
