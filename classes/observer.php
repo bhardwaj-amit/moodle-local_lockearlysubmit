@@ -30,14 +30,16 @@ use mod_assign\assign;
 /**
  * Event observers for local_lockearlysubmit plugin.
  */
-class observer {
+class observer
+{
     /**
      * Lock early submissions when assignment is viewed after the due date.
      *
      * @param \core\event\course_module_viewed $event
      */
-    public static function handle_view(\core\event\course_module_viewed $event) {
-        global $DB;
+    public static function handle_view(\core\event\course_module_viewed $event)
+    {
+        global $DB, $USER;
 
         // We only care about 'assign' modules.
         if ($event->objecttable !== 'assign') {
@@ -54,41 +56,43 @@ class observer {
         $assign = new \assign($context, null, null);
         $instance = $assign->get_instance();
 
-        // Skip if due date hasn't passed.
+        // Skip if due date hasn't passed or unlock the submission if due date extended.
         if ($instance->duedate == 0 || time() <= $instance->duedate) {
-            return;
-        }
-
-        // Skip if already locked previously.
-        if ($DB->record_exists('local_lockearlysubmit_log', ['assignid' => $instance->id])) {
-            return;
-        }
-
-        // Lock early submissions.
-        $submissions = $assign->get_all_submissions(null); // Get all users.
-        foreach ($submissions as $submission) {
-            if (
-                $submission->status === ASSIGN_SUBMISSION_STATUS_SUBMITTED &&
-                $submission->timemodified <= $instance->duedate
-            ) {
-                $flags = $assign->get_user_flags($submission->userid, true);
-                $flags->locked = 1;
-                $assign->update_user_flags($flags);
-            } else if (
-                $submission->status === ASSIGN_SUBMISSION_STATUS_NEW &&
-                $submission->timemodified <= $instance->duedate
-            ) {
-                $flags = $assign->get_user_flags($submission->userid, true);
-                $flags->locked = 0; // Ensure new submissions are not locked.
+            // Unlock only for this user if previously locked.
+            $flags = $assign->get_user_flags($USER->id, true);
+            if ($flags && $flags->locked) {
+                $flags->locked = 0;
                 $assign->update_user_flags($flags);
             }
+            return;
         }
 
-        // Mark this assignment as processed.
-        $DB->insert_record('local_lockearlysubmit_log', [
+        // Check if this user's submission is already processed (locked).
+        $exists = $DB->record_exists('local_lockearlysubmit_log', [
             'assignid' => $instance->id,
-            'timeprocessed' => time(),
+            'userid' => $USER->id
         ]);
+        if ($exists) {
+            return;
+        }
+
+        // Lock only this user's submission if submitted before due date and not already locked.
+        $submission = $assign->get_user_submission($USER->id, false);
+        if ($submission &&
+            $submission->status === ASSIGN_SUBMISSION_STATUS_SUBMITTED &&
+            $submission->timemodified <= $instance->duedate) {
+            $flags = $assign->get_user_flags($USER->id, true);
+            if ($flags && empty($flags->extensionduedate)) {
+                $flags->locked = 1;
+                $assign->update_user_flags($flags);
+                // Log this lock action for this user and assignment.
+                $DB->insert_record('local_lockearlysubmit_log', [
+                    'assignid' => $instance->id,
+                    'userid' => $USER->id,
+                    'timeprocessed' => time()
+                ]);
+            }
+        }
     }
 
     /**
@@ -96,7 +100,8 @@ class observer {
      *
      * @param \mod_assign\event\extension_granted $event
      */
-    public static function handle_extension(\mod_assign\event\extension_granted $event) {
+    public static function handle_extension(\mod_assign\event\extension_granted $event)
+    {
         global $DB;
 
         $cm = get_coursemodule_from_id('assign', $event->contextinstanceid);
@@ -118,7 +123,8 @@ class observer {
         if ($flags && $flags->extensionduedate > time()) {
             $submission = $assign->get_user_submission($userid, false);
             if ($submission && !empty($flags->locked)) {
-                $assign->unlock_submission($userid);
+                $flags->locked = 0;
+                $assign->update_user_flags($flags);
             }
         }
     }
