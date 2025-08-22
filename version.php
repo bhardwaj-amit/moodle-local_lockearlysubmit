@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_lockearlysubmit';
-$plugin->version   = 2025082001; // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2025082200; // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2020110900; // Moodle 3.11+.
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->release   = '1.0';

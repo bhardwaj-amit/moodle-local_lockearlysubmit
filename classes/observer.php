@@ -30,15 +30,13 @@ use mod_assign\assign;
 /**
  * Event observers for local_lockearlysubmit plugin.
  */
-class observer
-{
+class observer {
     /**
      * Lock early submissions when assignment is viewed after the due date.
      *
      * @param \core\event\course_module_viewed $event
      */
-    public static function handle_view(\core\event\course_module_viewed $event)
-    {
+    public static function handle_view(\core\event\course_module_viewed $event) {
         global $DB, $USER;
 
         // We only care about 'assign' modules.
@@ -70,7 +68,7 @@ class observer
         // Check if this user's submission is already processed (locked).
         $exists = $DB->record_exists('local_lockearlysubmit_log', [
             'assignid' => $instance->id,
-            'userid' => $USER->id
+            'userid' => $USER->id,
         ]);
         if ($exists) {
             return;
@@ -89,7 +87,7 @@ class observer
                 $DB->insert_record('local_lockearlysubmit_log', [
                     'assignid' => $instance->id,
                     'userid' => $USER->id,
-                    'timeprocessed' => time()
+                    'timeprocessed' => time(),
                 ]);
             }
         }
@@ -100,8 +98,7 @@ class observer
      *
      * @param \mod_assign\event\extension_granted $event
      */
-    public static function handle_extension(\mod_assign\event\extension_granted $event)
-    {
+    public static function handle_extension(\mod_assign\event\extension_granted $event) {
         global $DB;
 
         $cm = get_coursemodule_from_id('assign', $event->contextinstanceid);
